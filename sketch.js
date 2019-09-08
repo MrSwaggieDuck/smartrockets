@@ -2,8 +2,8 @@ let population = new Population;
 let popsize = 50;
 let lifespan = 500;
 let finish;
-let mutationRate = 0.005;
-let obstacles = [new Obstacle(400, 200, 20, 400), new Obstacle(1200, 600, 20, 400)];
+let mutationRate = 0.01;
+let obstacles = [new Obstacle(400, 200, 20, 400), new Obstacle(800, 650, 20, 300), new Obstacle(1200, 200, 20, 400)];
 
 
 function setup() {
@@ -51,6 +51,7 @@ function Population() {
   this.matingpool = [];
 
   this.newGen = function() {
+    this.matingpool = [];
     for (k = 0; k < this.rockets.length; k++) {
       fit = this.rockets[k].getFitness();
       for (l = 0; l < fit; l++) {
@@ -80,11 +81,20 @@ function Rocket(parent) {
 
   if (this.parent != null) {
     for (l = 0; l < lifespan; l++) {
-      if (random(0, 1) < mutationRate) {
-        this.DNA[l] = p5.Vector.random2D();
+      if (this.parent.finished) {
+        if (random(0, 1) < mutationRate/10) {
+          this.DNA[l] = p5.Vector.random2D();
+        } else {
+          this.DNA[l] = this.parent.DNA[l];
+        }
       } else {
-        this.DNA[l] = this.parent.DNA[l];
+        if (random(0, 1) < mutationRate) {
+          this.DNA[l] = p5.Vector.random2D();
+        } else {
+          this.DNA[l] = this.parent.DNA[l];
+        }
       }
+      
     }
   }
 
@@ -127,9 +137,8 @@ function Rocket(parent) {
   this.getFitness = function() {
     d = dist(this.pos.x, this.pos.y, finish.x, finish.y);
     this.fitness = map(d, 0, width, width, 0);
-    if (this.finished) this.fitness *= 10 * 100/this.count;
+    if (this.finished) this.fitness *= 100 * 100/this.count;
     if (this.dead) this.fitness /= 2;
-    console.log(this.checkpoints);
     return this.fitness;
   }
 
@@ -145,9 +154,10 @@ function Rocket(parent) {
   }
 }
 
-function Obstacle(x, y, width, height) {
+function Obstacle(x, y, width, height, angle) {
   this.pos = new p5.Vector(x, y);
   this.size = new p5.Vector(width, height);
+  this.angle = angle;
 
   this.draw = function() {
     fill(255,0,0);
